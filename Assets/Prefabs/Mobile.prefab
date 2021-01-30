@@ -401,7 +401,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 563438629ab3dd646a7d4f70631a23e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mobileLight: {fileID: 5254169794180146731}
+  timerText: {fileID: 0}
+  batteryTimeRemaining: 120
 --- !u!1 &6058235901655938793
 GameObject:
   m_ObjectHideFlags: 0
