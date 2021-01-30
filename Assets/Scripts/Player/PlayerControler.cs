@@ -1,18 +1,31 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerControler : MonoBehaviour
 {
     #region ##### VARIABLES #####
 
     [Header("Movement")]
-    public float speed = 2f;
+    public Vector2 speedMinAndMax = new Vector2(5f, 8f);
+    public float speed = 0f;
     public float acceleration = 20f;
+    private bool isCrouching = false;
 
+    [Header("Objects Detection")]
+    public LayerMask interactuableLayer;
+    public float maxInteractionDistance = 0.5f;
+    public GameObject interactionText;
+    private bool interactionAction = false;
+    private Ray interactionRay;
+    private GameObject interactionTarget;
+
+    
     public float horizontal, vertical, mouseX = 0f, mouseY = 0f;
 
     private Vector2 directionX, directionZ, desiredVelocity;
+    private bool isSprinting = false;
     private Rigidbody playerRB;
     #endregion
 
@@ -26,7 +39,11 @@ public class PlayerControler : MonoBehaviour
     }
 
     void Update() {
+        if (GameManager.instance.paused) {
+            return;
+        }
         Inputs();
+        CheckInteraction();
         Movement();
     }
     #endregion
@@ -39,9 +56,36 @@ public class PlayerControler : MonoBehaviour
         vertical = Input.GetAxis("Vertical");
         mouseX += -Input.GetAxis("Mouse Y");
         mouseY += Input.GetAxis("Mouse X");
+
+        if (Input.GetKey(KeyCode.LeftShift)) {
+            isSprinting = true;
+        } else {
+            isSprinting = false;
+        }
+
+        if (Input.GetKeyDown(KeyCode.F) && interactionAction) {
+            Interact();
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftControl)) {
+            ToggleCrouch();
+        }
+
+
     }
 
     private void Movement() {
+
+        if (isCrouching) {
+            return;
+        }
+
+        if (!isSprinting) {
+            speed = speedMinAndMax.x;
+        } else {
+            speed = speedMinAndMax.y;
+        }
+
 
         directionX = new Vector2(horizontal * transform.right.x, horizontal * transform.right.z);
         directionZ = new Vector2(vertical * transform.forward.x, vertical * transform.forward.z);
@@ -55,14 +99,45 @@ public class PlayerControler : MonoBehaviour
 
 
         transform.rotation = Quaternion.Euler(0, mouseY, 0);
+    }
 
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            if (Cursor.lockState == CursorLockMode.Locked)
-                Cursor.lockState = CursorLockMode.None;
+    private void CheckInteraction() {
+        if (GameManager.instance.isGameOver) {
+            interactionText.SetActive(false);
+            return;
+        }
+        
+        interactionRay.origin = Camera.main.transform.position;
+        interactionRay.direction = Camera.main.transform.forward;
 
-            if (Cursor.lockState == CursorLockMode.None)
-                Cursor.lockState = CursorLockMode.Locked;
+        RaycastHit interactionHit;
+        if (interactionAction = Physics.Raycast(interactionRay, out interactionHit, maxInteractionDistance, interactuableLayer)) {
+            interactionTarget = interactionHit.collider.gameObject;
+        } else {
+            interactionTarget = null;
+        }
+
+            interactionText.SetActive(interactionAction);
+
+    }
+
+
+    private void Interact() {
+        if (interactionTarget == null) {
+            return;
+        }
+            Debug.Log("Interaction");
+    }
+
+    private void ToggleCrouch() {
+        isCrouching = !isCrouching;
+
+        if (isCrouching) {
+            transform.localScale /= 5;
+        } else {
+            transform.localScale *= 5;
         }
     }
+
     #endregion
 }

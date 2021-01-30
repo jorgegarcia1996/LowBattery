@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public PlayerControler player;
 
     public bool paused;
+    public bool isGameOver;
 
     public static GameManager instance;
     #endregion
@@ -20,6 +21,8 @@ public class GameManager : MonoBehaviour
         if (instance == null) {
             instance = this;
         }
+        Cursor.lockState = CursorLockMode.Locked;
+
     }
 
     void Update() {
@@ -36,6 +39,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void Pause(bool pause) {
         if (pause) {
+            Cursor.lockState = CursorLockMode.None;
             pauseMenu.SetActive(true);
             inGameHud.SetActive(false);
             mainCamera.enabled = false;
@@ -44,6 +48,7 @@ public class GameManager : MonoBehaviour
             paused = true;
         }
         else {
+            Cursor.lockState = CursorLockMode.Locked;
             pauseMenu.SetActive(false);
             inGameHud.SetActive(true);
             mainCamera.enabled = true;
@@ -63,9 +68,11 @@ public class GameManager : MonoBehaviour
     /// Game Over Menu
     /// </summary>
     public void GameOver() {
+        isGameOver = true;
+        Cursor.lockState = CursorLockMode.None;
+        Time.timeScale = 0f;
         inGameHud.SetActive(false);
         gameOverMenu.SetActive(true);
-        gameOverMenu.transform.Find("GameOverMenu").gameObject.SetActive(true);
     }
 
     public void SetMouseSensibility(float sensitivity) {
